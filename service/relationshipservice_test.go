@@ -10,6 +10,7 @@ func TestFind(t *testing.T) {
 	r := model.Node{
 		Name:   "seeta",
 		Gender: FEMALE,
+		Children: make(map[string]*model.Node),
 	}
 
 	r.Children = make(map[string]*model.Node)
@@ -47,6 +48,74 @@ func TestFind(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := Find(tt.args.searchName, tt.args.root); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Find() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetRelationUsingcurrentAndMother(t *testing.T) {
+	r := model.Node{
+		Name:   "seeta",
+		Gender: FEMALE,
+		Children: make(map[string]*model.Node),
+	}
+	//seeta daughter1
+	seeta_d1:=model.Node{
+		Name:"seetad1",
+		Gender:FEMALE,
+		Mother:&r,
+	}
+
+	//seeta daughter2
+	seeta_d2:=model.Node{
+		Name:"seetad2",
+		Gender:FEMALE,
+		Mother:&r,
+	}
+
+	//seeta son 1
+	seeta_s1:=model.Node{
+		Name:"seetas1",
+		Gender:MALE,
+		Mother:&r,
+	}
+	
+	r.Children["seeta_d1"]=&seeta_d1
+	r.Children["seeta_d2"]=&seeta_d2
+	//adding son
+	r.Children["seeta_s1"]=&seeta_s1
+	//seeta grand daughter d1_1
+	seeta_d1_1:=model.Node{
+		Name:"seetad1_1",
+		Gender:FEMALE,
+		Mother:&seeta_d1,
+	}
+
+	type args struct {
+		currentPerson *model.Node
+		mother        *model.Node
+		relationship  string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []*model.Node
+	}{
+		{name:"Find maternal aunt",args:args{currentPerson:&seeta_d1_1,mother:&seeta_d1,relationship:Maternal_Aunt},
+		want:[]*model.Node{&seeta_d2}},
+		{name:"Find maternal uncle",args:args{currentPerson:&seeta_d1_1,mother:&seeta_d1,relationship:Maternal_Uncle},
+		want:[]*model.Node{&seeta_s1}},
+		{name:"Son",args:args{currentPerson:&r,mother:nil,relationship:Son},
+		want:[]*model.Node{&seeta_s1}},
+		{name:"Daughter",args:args{currentPerson:&r,mother:nil,relationship:Daughter},
+		want:[]*model.Node{&seeta_d1,&seeta_d2}},
+		{name:"Siblings",args:args{currentPerson:&seeta_d1,mother:nil,relationship:Siblings},
+		want:[]*model.Node{&seeta_s1,&seeta_d2}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := GetRelationUsingcurrentAndMother(tt.args.currentPerson, tt.args.mother, tt.args.relationship); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetRelationUsingcurrentAndMother() = %v, want %v", got, tt.want)
 			}
 		})
 	}
