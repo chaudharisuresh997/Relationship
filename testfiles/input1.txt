@@ -1,0 +1,9 @@
+ADD_CHILD Sharda Jaya Female
+ADD_CHILD Sharda Shardadaughter1 Female
+ADD_CHILD Sharda Shardason1 Male
+ADD_CHILD Jaya Abhishek Male
+ADD_CHILD Shardadaughter1 Shardadaughter1_1 Female
+GET_RELATIONSHIP Jayadaughter1_1 Maternal-Uncle
+GET_RELATIONSHIP Shardadaughter1 Daughter
+GET_RELATIONSHIP Jaya Son
+GET_RELATIONSHIP Jaya siblings

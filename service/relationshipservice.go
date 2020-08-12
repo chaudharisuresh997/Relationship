@@ -1,6 +1,7 @@
 package service
 
 import (
+	"log"
 	"fmt"
 	"geektrust/model"
 	"strings"
@@ -17,66 +18,91 @@ const (
 const(PERSON_NOT_FOUND string="PERSON_NOT_FOUND"
 CHILD_ADDITION_FAILED string="CHILD_ADDITION_FAILED")
 
-func ProcessCommand(r Request, root model.Node) {
+func ProcessCommand(r Request, root *model.Node)(*model.Node) {
 
 	switch r.Command {
 	case GET_RELATIONSHIP:
-		if strings.EqualFold(r.Relation,Maternal_Aunt) {
-		currentPerson := Find(r.Name, &root)
+	//	var obj model.Node
+	 var currentPerson *model.Node
+	// currentPerson=&obj
+	currentPerson=Find(r.Name, root)
 		mother := currentPerson.Mother
 
 		GetRelationUsingcurrentAndMother(currentPerson, mother, r.Relation)
-		}
+	
 	case ADD_CHILD:
-		AddChild(root, r)
+		root=AddChild(root, r)
 
 	}
-
+return root
 }
-func AddChild(root model.Node, request Request) {
+func AddChild(root *model.Node, request Request)(*model.Node){
+	log.Printf("AdChild")
+	//node to find is currentNode
 	var currentNode *model.Node
+	var child *model.Node
 	if len(root.Name) == 0 {
-		root = model.Node{
+		log.Printf("AdChild root empty")
+		root = &model.Node{
 			Name:   request.Name,
 			Gender: request.Gender,
+			Children:make(map[string]*model.Node),
 		}
-		currentNode = &root
+		child = &model.Node{
+			Name:   request.ChildName,
+			Gender: request.Gender,
+			Mother: root,
+			
+		}
+		root.Children[child.Name] = child
 	} else {
 		//find parent first
 		//then assign baby
-		currentNode = Find(request.Name, &root)
-	}
+		log.Printf("AdChild root !null")
+		//
+		// var obj model.Node
+		
+		// currentNode=&obj
+		currentNode=Find(request.Name, root)//,currentNode)
 
-	child := model.Node{
-		Name:   request.ChildName,
-		Gender: request.Gender,
-		Mother: currentNode,
+		child = &model.Node{
+			Name:   request.ChildName,
+			Gender: request.Gender,
+			Mother: currentNode,
+			
+		}
+	
+		//add child to map
+		if(currentNode.Children==nil){
+			currentNode.Children=make(map[string]*model.Node)
+		}		
+		currentNode.Children[child.Name] = child
 	}
-
-	//add child to map
-	currentNode.Children[child.Name] = &child
+	return root
+	
 }
 
-func Find(searchName string, root *model.Node) *model.Node {
+func Find(searchName string, root *model.Node)(*model.Node)  {
 	if root == nil {
 		fmt.Println("NIL")
 		return nil
 	}
-	if strings.EqualFold(root.Name, searchName) {
+	if strings.EqualFold(root.Name,searchName) {
+		//*toSearchNode=*root
 		return root
-	} else {
+	} 
 		if root.Children != nil {
-			for _, v := range root.Children {
-
-				return Find(searchName, v)
-				// if strings.EqualFold(*&(v).Name, searchName) {
-				// 	return v
-				// }
-				//else process again its child
+			for i, _ := range root.Children {
+				// if(strings.EqualFold(toSearchNode.Name,searchName)){
+				// 	break
+				// }	
+				Find(searchName, root.Children[i])
+				
 			}
 		}
-	}
-	return &model.Node{}
+		return nil
+	
+
 }
 func GetRelationUsingcurrentAndMother(currentPerson *model.Node, mother *model.Node, relationship string) []*model.Node {
 	var nodes []*model.Node
@@ -84,7 +110,7 @@ func GetRelationUsingcurrentAndMother(currentPerson *model.Node, mother *model.N
 	case Maternal_Uncle:
 		//you have mother get parent of mother 
 		msMother:=mother.Mother
-		
+	if msMother!=nil {
 		for _,v:= range msMother.Children {
 			unclesOrAunt:=*(v)
 			//FOUND
@@ -93,12 +119,13 @@ func GetRelationUsingcurrentAndMother(currentPerson *model.Node, mother *model.N
 				nodes=append(nodes, &unclesOrAunt)
 			}
 		}
+	}
 		return output(nodes)
 		
 		//get all child of mothers mother 
 	case Maternal_Aunt:
 		msMother:=mother.Mother
-	
+		if msMother!=nil {
 		for _,v:= range msMother.Children {
 			unclesOrAunt:=*(v)
 			if strings.EqualFold(unclesOrAunt.Gender,FEMALE) && !strings.EqualFold(mother.Name,unclesOrAunt.Name){
@@ -107,8 +134,10 @@ func GetRelationUsingcurrentAndMother(currentPerson *model.Node, mother *model.N
 				
 			}
 		}
+	}
 		return output(nodes)
 	case Son:
+	
 		for _,v:= range currentPerson.Children {
 			sonorDaughter:=*(v)
 			if strings.EqualFold(sonorDaughter.Gender,MALE){

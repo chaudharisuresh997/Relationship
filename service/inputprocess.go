@@ -1,6 +1,7 @@
 package service
 
 import (
+	"log"
 	"errors"
 	"geektrust/model"
 	"strings"
@@ -12,8 +13,8 @@ const (
 
 //commands
 const (
-	ADD_CHILD        string = "add_child"
-	GET_RELATIONSHIP string = "get_relationship"
+	ADD_CHILD        string = "ADD_CHILD"
+	GET_RELATIONSHIP string = "GET_RELATIONSHIP"
 )
 
 //msg
@@ -23,8 +24,8 @@ const (
 
 //gender
 const (
-	MALE   string = "male"
-	FEMALE string = "female"
+	MALE   string = "Male"
+	FEMALE string = "Female"
 )
 
 type Request struct {
@@ -37,7 +38,7 @@ type Request struct {
 
 //GetRequest :
 func GetRequest(command string) (Request, error) {
-
+log.Println("GetRequest")
 	elements := strings.Split(command, " ")
 	if len(elements) < 3 {
 		return Request{}, errors.New(Not_Enough_Args)
@@ -58,15 +59,24 @@ func GetRequest(command string) (Request, error) {
 
 }
 
-var root model.Node
+
 
 func ProcessInput(commandLines []string) {
+	
+	
+root:=model.Node{}
+
 	for i := 0; i < len(commandLines); i++ {
 
 		//get each action
 		request, err := GetRequest(commandLines[i])
 		if err == nil {
-			ProcessCommand(request, root)
+			log.Println("Calling ProcessCommand")
+			
+			returnroot:=ProcessCommand(request, &root)
+			root=*returnroot
+		}else{
+			log.Printf("error reading command %v %v",commandLines[i],err)
 		}
 	}
 }
